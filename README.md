@@ -1,5 +1,5 @@
 # node.js collab summit 2018
 
-Streams discussion
+~~Streams~~ [BOB](https://github.com/Fishrock123/bob) discussion for the Vancouver collab summit.
 
-https://mafintosh.github.io/nodejs-collab-summit-2018
+https://fishrock123.github.io/nodejs-collab-summit-2018

@@ -14,56 +14,7 @@
   <script>hljs.initHighlightingOnLoad();</script>
 </head>
 <body class='light'>
-  <div>Node.js collab summit 2018</div>
-  <div>- the streams edition</div>
-  <div>
-    1. <em>Iterating streams</em> in core<br><br>
-    2. <em>Low level streams</em> in core/c++ (BOB)
-  </div>
-  <div>
-    1. <em>Iterating streams</em> in core
-  </div>
-  <div>
-    Streams in core are heavily used across the ecosystem
-  </div>
-  <div>
-    We cannot <em>"break the world"</em> but we can fix the inconsistencies
-  </div>
-  <div>
-    Things we wanna improve:
-  </div>
-  <div>
-    <ul>
-      <li>Test coverage</li>
-      <li>Error handling</li>
-      <li style="white-space: nowrap">readable-stream maintenance</li>
-    </ul>
-  </div>
-  <div>
-    Error handling
-  </div>
-  <div>
-    https://github.com/nodejs/node/issues/20096
-  </div>
-  <div>
-    TL;DR<br><br>
-
-    Make streams always call <em>.destroy()</em> as the final lifycycle step
-  </div>
-  <div>
-    <ul>
-      <li>Make core use <em>.destroy()</em> to error handle streams</li>
-      <li>Every stream will emit <em>close</em> as the final step</li>
-      <li><em>close</em> is always the last of the stream events</li>
-    </ul>
-  </div>
-  <div>
-    2. <em>Low level streams</em> in core
-  </div>
-  <div>
-    (@Fishrock123)
-  </div>
-  <div>Node.js collab summit 2018</div>
+  <div>Node Collab Summit Vancouver 2018</div>
   <div>- the <del>streams</del> BOB edition</div>
   <div>
     A different<br><em>Project Approach</em>
@@ -75,17 +26,11 @@
     We can take the time to get it right
   </div>
   <div>
-    Some terms:
-    <ul>
-      <li><em>Consumer</em> / "<em>Sink</em>" - API end where data goes to.</li>
-      <li><em>Producer</em> / "<em>Source</em>" - API end where data comes from.</li>
-    </ul>
-  </div>
-  <div>
     1. <em>Why</em><br>
     2. <em>Goals</em><br>
-    3. <em>Current Api</em><br>
-    4. <em>Performance</em>
+    3. <em>Api</em><br>
+    4. <em>Current Modules</em><br>
+    5. <em>Performance</em>
   </div>
   <div>
     1. <em>Why</em> reinvent streams?
@@ -97,11 +42,11 @@
     Streams <em>performance</em> is underwhelming
   </div>
   <div>
-    3. <em>Goals</em>
+    2. <em>Goals</em>
   </div>
   <div>
     <ul>
-      <li><em>Performance</em> and <em>ease-of-use</em> are key motivations.</li>
+      <li><em>Performance</em> and <em>ease-of-use</em> are key.</li>
       <li>Implementable in a performant and usable way for both <em>JS and C++</em>.</li>
       <li>Browser portability is preferable.</li>
     </ul>
@@ -114,10 +59,10 @@
       <li>Pull-based</li>
       <li>Binary-only</li>
       <li>Stateless (in-protocol)</li>
-      <li>One-to-one</li>
+      <li>One-to-one (no events)</li>
       <li>Timing agnostic</li>
-      <li>No buffering</li>
-      <li>In-line errors and EOF</li>
+      <li>No buffering (in-protocol)</li>
+      <li>In-line errors and "end"</li>
     </ul>
   </div>
   <div>
@@ -130,23 +75,154 @@
     </ul>
   </div>
   <div>
-    The <em>Current API</em>
+    The <em>Current Proposed API</em>
   </div>
   <div>
-    github.com/Fishrock123/bob#api-reference
+    Some terms:
+    <ul>
+      <li><em>Consumer</em> / "<em>Sink</em>" - API end where data goes to.</li>
+      <li><em>Producer</em> / "<em>Source</em>" - API end where data comes from.</li>
+    </ul>
+  </div>
+  <div>
+    <small>Sink API</small>
+    <br>
+    <pre>
+class Sink {
+  constructor (opts) {}
+
+  bindSource (source, bindCb) {
+    this.source = source
+
+  }
+
+  next (status, error, buffer, bytes) {
+    // do stuff with received data
+
+  }
+}
+    </pre>
+  </div>
+  <div>
+    <small>Sink API</small>
+    <br>
+    <pre>
+class Sink {
+  constructor (opts) {}
+
+  bindSource (source, bindCb) {
+    this.source = source
+    this.source.bindSink(this)
+  }
+
+  next (status, error, buffer, bytes) {
+    // do stuff with received data
+    this.source.pull(null, buffer)
+  }
+}
+    </pre>
+  </div>
+  <div>
+    <small>Source API</small>
+    <br>
+    <pre>
+class Source {
+  constructor (opts) {}
+
+  bindSink (sink) {
+    this.sink = sink
+  }
+
+  pull (error, buffer) {
+    // get data
+
+
+  }
+}
+    </pre>
+  </div>
+  <div>
+    <small>Source API</small>
+    <br>
+    <pre>
+class Source {
+  constructor (opts) {}
+
+  bindSink (sink) {
+    this.sink = sink
+  }
+
+  pull (error, buffer) {
+    // get data
+    this.sink.next(status_type.continue, null,
+                   buffer, bytesWritten)
+  }
+}
+    </pre>
+  </div>
+  <div>
+    <pre>
+class PassThrough {
+  bindSource (source) {
+    source.bindSink(this)
+    this.source = source
+    return this
+  }
+
+  bindSink (sink) {
+    this.sink = sink
+  }
+
+  next (status, error, buffer, bytes) {
+    this.sink.next(status, error, buffer, bytes)
+  }
+
+  pull (error, buffer) {
+    this.source.pull(error, buffer)
+  }
+}
+    </pre>
+  </div>
+  <div>
+    Composing a source & sink
+    <br>
+    <pre>
+const source = new Source(opts)
+const sink = new Sink(opts)
+
+sink.bindSource(source, error => {
+  // The stream is finished when this is called.
+})
+    </pre>
+  </div>
+  <div>
+    <img src="diagrams/BOB-diagram.png" />
+  </div>
+  <div>
+    <img src="diagrams/BOB-errors-diagram.png" />
+  </div>
+  <div>
+    Current <em>Modules</em>
+  </div>
+  <div>
+    <ul>
+      <li>bob-status</li>
+      <li>fs-source</li>
+      <li>fs-sink</li>
+      <li>zlib-transform</li>
+      <li>github.com/Fishrock123/socket</li>
+    </ul>
   </div>
   <div>
     Current API <em>Performance</em>
   </div>
   <div>
+    For a single long stream
     <ul>
       <li>30% decrease of CPU time in bad cases</li>
       <li><em>Up to 8x decrease</em> in good cases</li>
       <li>Should correlate to overall throughput but may not be exact.</li>
     </ul>
-  </div>
-  <div>
-    github.com/Fishrock123/bob/blob/master/performance.md
   </div>
   <div>
     <em>\o/</em>
