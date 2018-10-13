@@ -8,14 +8,31 @@
   <link href='highlight.css' rel='stylesheet' type='text/css' />
   <style>
     .new-shiny { background: #aaaaaa; }
+    :-webkit-full-screen {
+      width: 100%;
+      height: 100%;
+    }
   </style>
   <script src='big.js'></script>
   <script src='highlight.js'></script>
   <script>hljs.initHighlightingOnLoad();</script>
+  <script>
+  // document.addEventListener('keydown', ({ key }) => {
+  //   if (key !== 'f') return
+  //
+  //   console.log('document.fullscreenEnabled', document.fullscreenEnabled)
+  //
+  //   if (document.fullscreenElement) {
+  //     document.exitFullscreen()
+  //   } else {
+  //     document.documentElement.requestFullscreen()
+  //   }
+  // })
+  </script>
 </head>
-<body class='light'>
+<body id='body' class='light'>
   <div>Node Collab Summit Vancouver 2018</div>
-  <div>- the <del>streams</del> BOB edition</div>
+  <div>- the <del>Streams</del> <em>BOB</em> edition</div>
   <div>
     A different<br><em>Project Approach</em>
   </div>
@@ -29,8 +46,8 @@
     1. <em>Why</em><br>
     2. <em>Goals</em><br>
     3. <em>Api</em><br>
-    4. <em>Current Modules</em><br>
-    5. <em>Performance</em>
+    4. <em>Current Status</em><br>
+    6. <em>Discussion</em>
   </div>
   <div>
     1. <em>Why</em> reinvent streams?
@@ -45,6 +62,14 @@
     2. <em>Goals</em>
   </div>
   <div>
+    Some terms:
+    <ul>
+      <li><em>Consumer</em> / "<em>Sink</em>" - API end where data goes to.</li><br>
+      <li><em>Producer</em> / "<em>Source</em>" - API end where data comes from.</li><br>
+      <li><em>"Protocol"</em> - combination of a Consumer & Producer</li>
+    </ul>
+  </div>
+  <div>
     <ul>
       <li><em>Performance</em> and <em>ease-of-use</em> are key.</li>
       <li>Implementable in a performant and usable way for both <em>JS and C++</em>.</li>
@@ -55,6 +80,7 @@
     Protocol <em>Goals</em>
   </div>
   <div>
+    Protocol <em>Goals</em>
     <ul>
       <li>Pull-based</li>
       <li>Binary-only</li>
@@ -69,6 +95,7 @@
     Consumer <em>Goals</em>
   </div>
   <div>
+    Consumer <em>Goals</em>
     <ul>
       <li>Should own any preallocated memory (the buffer).</li>
       <li>Must never make more than one data request upstream at the same time.</li>
@@ -78,14 +105,7 @@
     The <em>Current Proposed API</em>
   </div>
   <div>
-    Some terms:
-    <ul>
-      <li><em>Consumer</em> / "<em>Sink</em>" - API end where data goes to.</li>
-      <li><em>Producer</em> / "<em>Source</em>" - API end where data comes from.</li>
-    </ul>
-  </div>
-  <div>
-    <small>Sink API</small>
+    <small><em>Sink API</em></small>
     <br>
     <pre>
 class Sink {
@@ -104,7 +124,7 @@ class Sink {
     </pre>
   </div>
   <div>
-    <small>Sink API</small>
+    <small><em>Sink API</em></small>
     <br>
     <pre>
 class Sink {
@@ -123,7 +143,7 @@ class Sink {
     </pre>
   </div>
   <div>
-    <small>Source API</small>
+    <small><em>Source API</em></small>
     <br>
     <pre>
 class Source {
@@ -142,7 +162,7 @@ class Source {
     </pre>
   </div>
   <div>
-    <small>Source API</small>
+    <small><em>Source API</em></small>
     <br>
     <pre>
 class Source {
@@ -184,16 +204,38 @@ class PassThrough {
     </pre>
   </div>
   <div>
-    Composing a source & sink
+    Composing a <em>source & sink</em>
     <br>
     <pre>
 const source = new Source(opts)
 const sink = new Sink(opts)
 
+
+
 sink.bindSource(source, error => {
   // The stream is finished when this is called.
 })
     </pre>
+  </div>
+  <div>
+    Composition with a <em>transform</em>
+    <br>
+    <pre>
+const source = new Source(opts)
+const sink = new Sink(opts)
+const transform = new Transform(opts)
+
+transform.bindSource(source)
+sink.bindSource(transform, error => {
+  // The stream is finished when this is called.
+})
+    </pre>
+  </div>
+  <div>
+    github.com/<em>Fishrock123/bob</em>
+    <br>
+    <br>
+    <small>/diagrams</small>
   </div>
   <div>
     <img src="diagrams/BOB-diagram.png" />
@@ -202,9 +244,11 @@ sink.bindSource(source, error => {
     <img src="diagrams/BOB-errors-diagram.png" />
   </div>
   <div>
-    Current <em>Modules</em>
+    Current <em>Status</em>
   </div>
   <div>
+    Current <em>Modules</em>
+    <br>
     <ul>
       <li>bob-status</li>
       <li>fs-source</li>
@@ -215,20 +259,30 @@ sink.bindSource(source, error => {
   </div>
   <div>
     Current API <em>Performance</em>
-  </div>
-  <div>
-    For a single long stream
+    <br>
+    <small>For any single stream</small>
     <ul>
-      <li>30% decrease of CPU time in bad cases</li>
+      <li>~30% decrease of CPU time in bad cases</li>
       <li><em>Up to 8x decrease</em> in good cases</li>
       <li>Should correlate to overall throughput but may not be exact.</li>
     </ul>
   </div>
   <div>
-    <em>\o/</em>
+    Discussion!
+    <br>
+    <br>
+    github.com/<em>Fishrock123/bob</em>
   </div>
   <div>
-    github.com/Fishrock123/bob
+    Open <em>Questions</em>
+    <br><br>
+    <li>Is this API likeable?</li>
+    <li>Do we need a buffering helper?</li>
+    <li>Is it too API-pattern focused?</li>
+    <li></li>
+    <li></li>
+    <li></li>
+    <li></li>
   </div>
 </body>
 </html>
