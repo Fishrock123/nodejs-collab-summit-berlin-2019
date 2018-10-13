@@ -37,12 +37,6 @@
     A different<br><em>Project Approach</em>
   </div>
   <div>
-    Not immediately necessary
-  </div>
-  <div>
-    We can take the time to get it right
-  </div>
-  <div>
     1. <em>Why</em><br>
     2. <em>Goals</em><br>
     3. <em>Api</em><br>
@@ -69,16 +63,13 @@
       <li><em>"Protocol"</em> - combination of a Consumer & Producer</li>
     </ul>
   </div>
-  <div>
+  <!-- <div>
     <ul>
       <li><em>Performance</em> and <em>ease-of-use</em> are key.</li>
       <li>Implementable in a performant and usable way for both <em>JS and C++</em>.</li>
       <li>Browser portability is preferable.</li>
     </ul>
-  </div>
-  <div>
-    Protocol <em>Goals</em>
-  </div>
+  </div> -->
   <div>
     Protocol <em>Goals</em>
     <ul>
@@ -91,23 +82,20 @@
       <li>In-line errors and "end"</li>
     </ul>
   </div>
-  <div>
-    Consumer <em>Goals</em>
-  </div>
-  <div>
+  <!-- <div>
     Consumer <em>Goals</em>
     <ul>
       <li>Should own any preallocated memory (the buffer).</li>
       <li>Must never make more than one data request upstream at the same time.</li>
     </ul>
-  </div>
+  </div> -->
   <div>
     The <em>Current Proposed API</em>
   </div>
   <div>
-    <small><em>Sink API</em></small>
+    <li><em>Sink API</em></li>
     <br>
-    <pre>
+    <pre><code class="js">
 class Sink {
   constructor (opts) {}
 
@@ -121,12 +109,12 @@ class Sink {
 
   }
 }
-    </pre>
+    </code></pre>
   </div>
   <div>
-    <small><em>Sink API</em></small>
+    <li><em>Sink API</em></li>
     <br>
-    <pre>
+    <pre><code class="js">
 class Sink {
   constructor (opts) {}
 
@@ -140,12 +128,12 @@ class Sink {
     this.source.pull(null, buffer)
   }
 }
-    </pre>
+    </code></pre>
   </div>
   <div>
-    <small><em>Source API</em></small>
+    <li><em>Source API</em></li>
     <br>
-    <pre>
+    <pre><code class="js">
 class Source {
   constructor (opts) {}
 
@@ -159,12 +147,12 @@ class Source {
 
   }
 }
-    </pre>
+    </code></pre>
   </div>
   <div>
-    <small><em>Source API</em></small>
+    <li><em>Source API</em></li>
     <br>
-    <pre>
+    <pre><code class="js">
 class Source {
   constructor (opts) {}
 
@@ -178,10 +166,10 @@ class Source {
                    buffer, bytesWritten)
   }
 }
-    </pre>
+    </code></pre>
   </div>
   <div>
-    <pre>
+    <pre><code class="js">
 class PassThrough {
   bindSource (source) {
     source.bindSink(this)
@@ -201,12 +189,12 @@ class PassThrough {
     this.source.pull(error, buffer)
   }
 }
-    </pre>
+    </code></pre>
   </div>
   <div>
-    Composing a <em>source & sink</em>
+    <li>Composing a <em>source & sink</em></li>
     <br>
-    <pre>
+    <pre><code class="js">
 const source = new Source(opts)
 const sink = new Sink(opts)
 
@@ -215,12 +203,12 @@ const sink = new Sink(opts)
 sink.bindSource(source, error => {
   // The stream is finished when this is called.
 })
-    </pre>
+    </code></pre>
   </div>
   <div>
-    Composition with a <em>transform</em>
+    <li>Composition with a <em>transform</em></li>
     <br>
-    <pre>
+    <pre><code class="js">
 const source = new Source(opts)
 const sink = new Sink(opts)
 const transform = new Transform(opts)
@@ -229,7 +217,7 @@ transform.bindSource(source)
 sink.bindSource(transform, error => {
   // The stream is finished when this is called.
 })
-    </pre>
+    </code></pre>
   </div>
   <div>
     github.com/<em>Fishrock123/bob</em>
@@ -277,12 +265,11 @@ sink.bindSource(transform, error => {
     Open <em>Questions</em>
     <br><br>
     <li>Is this API likeable?</li>
-    <li>Do we need a buffering helper?</li>
+    <li>Do we need a buffer pooling helper?</li>
     <li>Is it too API-pattern focused?</li>
-    <li></li>
-    <li></li>
-    <li></li>
-    <li></li>
+    <li>How to enforce single active request?</li>
+    <li>Where to start implementing in core?</li>
+    <li>Can we get libuv to implement pull streams?</li>
   </div>
 </body>
 </html>
